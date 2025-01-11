@@ -44,9 +44,7 @@ def pre_excel(excel_path, output_path, label="请评价样品"):
             second_col_name = sheet_df.columns[1]
             new_columns[1] = second_col_name.split("—")[1]
             sheet_df.columns = new_columns
-            new_sheet_name = (
-                second_col_name.split(label)[1].split("样品")[0].strip()
-            )
+            new_sheet_name = second_col_name.split(label)[1].split("样品")[0].strip()
             # 按照人名排序
             sheet_df_sorted = sheet_df.sort_values(by=sheet_df.columns[0])
             sheet_df_sorted.insert(1, "样品", new_sheet_name)
@@ -54,7 +52,7 @@ def pre_excel(excel_path, output_path, label="请评价样品"):
             sheet_df_sorted.to_excel(writer, sheet_name=new_sheet_name, index=False)
 
 
-def calculate_fp(cost_limit: float):
+def calculate_fp(cost_limit, sheet_map, sheet_code_map):
     excel_files = []
     for file in os.listdir():
         if file.endswith(".xlsx") and "属性评分" in file:
@@ -67,8 +65,8 @@ def calculate_fp(cost_limit: float):
 
     with pd.ExcelFile(tmp_file1) as xls1, pd.ExcelFile(tmp_file2) as xls2:
         sheet_names = xls1.sheet_names
-        sheet_map = {386: 385, 472: 826, 631: 170, 902: 759}
-        sheet_code_map = {386: "Anchor", 472: "TATUA", 631: "PRESIDENT", 902: "Debic"}
+        # sheet_map = {386: 385, 472: 826, 631: 170, 902: 759}
+        # sheet_code_map = {386: "Anchor", 472: "TATUA", 631: "PRESIDENT", 902: "Debic"}
 
         now = datetime.now()
         current_summary = now.strftime("%Y-%m-%d_%H_%M_%S")
@@ -151,6 +149,15 @@ def calculate_fp(cost_limit: float):
 
 
 if __name__ == "__main__":
+    if os.path.isfile("config.xlsx"):
+        df = pd.read_excel("config.xlsx")
+        sheet_map, sheet_code_map = {}, {}
+        for _, row in df.iterrows():
+            sheet_map[row.to_dict()["code1"]] = row.to_dict()["code2"]
+            sheet_code_map[row.to_dict()["code1"]] = row.to_dict()["name"]
+    else:
+        sheet_map={386: 385, 472: 826, 631: 170, 902: 759}
+        sheet_code_map={386: "Anchor", 472: "TATUA", 631: "PRESIDENT", 902: "Debic"}
     cost_limit = float(input("请输入分差阈值: "))
-    calculate_fp(cost_limit=cost_limit)
+    calculate_fp(cost_limit=cost_limit, sheet_map=sheet_map, sheet_code_map=sheet_code_map)
     input("请按任意键结束: ")
