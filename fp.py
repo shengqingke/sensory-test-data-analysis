@@ -57,7 +57,8 @@ def calculate_fp(cost_limit, sheet_map, sheet_code_map):
     for file in os.listdir():
         if file.endswith(".xlsx") and "属性评分" in file:
             excel_files.append(os.path.join(os.getcwd(), file))
-
+    excel_files = sorted(excel_files, key=lambda x: os.path.basename(x).split("-")[1])
+    
     tmp_file1 = "temp_output1.xlsx"
     tmp_file2 = "temp_output2.xlsx"
     pre_excel(excel_files[0], tmp_file1)
