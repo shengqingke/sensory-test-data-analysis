@@ -12,7 +12,7 @@ def pre_excel(excel_path, output_path, label="请评价样品"):
     # 找到  请评价样品  列
     specified_indices = []
     for index, col in enumerate(df.columns):
-        if "请评价样品" in col:
+        if label in col:
             specified_indices.append(index)
 
     # 初始化一个空字典，用于存储拆分后的DataFrame
@@ -45,7 +45,7 @@ def pre_excel(excel_path, output_path, label="请评价样品"):
             new_columns[1] = second_col_name.split("—")[1]
             sheet_df.columns = new_columns
             new_sheet_name = (
-                second_col_name.split("请评价样品")[1].split("样品")[0].strip()
+                second_col_name.split(label)[1].split("样品")[0].strip()
             )
             # 按照人名排序
             sheet_df_sorted = sheet_df.sort_values(by=sheet_df.columns[0])
@@ -54,7 +54,7 @@ def pre_excel(excel_path, output_path, label="请评价样品"):
             sheet_df_sorted.to_excel(writer, sheet_name=new_sheet_name, index=False)
 
 
-def calculate_fp():
+def calculate_fp(cost_limit: float):
     excel_files = []
     for file in os.listdir():
         if file.endswith(".xlsx") and "属性评分" in file:
@@ -111,7 +111,7 @@ def calculate_fp():
 
         # 遍历每两行
         for row in range(2, ws.max_row + 1, 2):
-            # 统计大于等于15的个数
+            # 统计大于等于cost_limit的个数
             count = 0
             for col in range(3, ws.max_column + 1):
                 cell1 = ws.cell(row=row, column=col)
@@ -120,8 +120,8 @@ def calculate_fp():
                 # 计算差值
                 diff = abs(cell1.value - cell2.value)
 
-                # 标记大于等于15的单元格
-                if diff >= 15:
+                # 标记大于等于cost_limit的单元格
+                if diff >= cost_limit:
                     count += 1
                     cell1.fill = PatternFill(
                         start_color="FFFF00", end_color="FFFF00", fill_type="solid"
@@ -151,5 +151,6 @@ def calculate_fp():
 
 
 if __name__ == "__main__":
-    calculate_fp()
+    cost_limit = float(input("请输入分差阈值: "))
+    calculate_fp(cost_limit=cost_limit)
     input("请按任意键结束: ")
